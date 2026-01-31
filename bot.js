@@ -9,11 +9,21 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
 
-let readyPromise = new Promise((resolve) => {
-  client.once("ready", () => {
-    console.log(`✅ Logged in as ${client.user.tag}`);
-    resolve();
-  });
+let readyPromiseResolve;
+let readyPromiseReject;
+let readyPromise = new Promise((resolve, reject) => {
+  readyPromiseResolve = resolve;
+  readyPromiseReject = reject;
+});
+
+client.once("ready", () => {
+  console.log(`✅ Logged in as ${client.user.tag}`);
+  readyPromiseResolve();
+});
+
+client.login(process.env.TOKEN).catch(error => {
+  console.error("Failed to login:", error);
+  readyPromiseReject(error);
 });
 
 /* API */
@@ -29,7 +39,7 @@ app.get("/api/emojis", async (_, res) => {
     })));
   } catch (error) {
     console.error("Error fetching emojis:", error);
-    res.status(500).json({ error: "Failed to fetch emojis. Bot may not be ready or there was an internal error." });
+    res.status(500).json({ error: "Failed to fetch emojis. Bot may not be ready or there was an internal error: " + error.message });
   }
 });
 
@@ -306,5 +316,4 @@ fetch("/api/emojis").then(r=>r.json()).then(list=>{
 `);
 });
 
-client.login(process.env.TOKEN);
 app.listen(process.env.PORT || 3000, () => console.log(`🌐 Server listening on port ${process.env.PORT || 3000}`));
