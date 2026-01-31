@@ -1,7 +1,8 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, SlashCommandBuilder } = require("discord.js");
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const { v4: uuidv4 } = require("uuid");
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -16,9 +17,35 @@ let readyPromise = new Promise((resolve, reject) => {
   readyPromiseReject = reject;
 });
 
-client.once("ready", () => {
+const tokenToChannel = new Map(); // In-memory store: token -> channelId
+
+client.once("ready", async () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
+  // Register slash command
+  await client.application.commands.create(
+    new SlashCommandBuilder()
+      .setName('create_url')
+      .setDescription('Create a shareable URL for the emoji dashboard')
+      .addChannelOption(option =>
+        option.setName('channel')
+          .setDescription('The channel to tie the URL to')
+          .setRequired(true)
+      )
+      .toJSON()
+  ).catch(console.error);
   readyPromiseResolve();
+});
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isCommand()) return;
+  if (interaction.commandName === 'create_url') {
+    const channel = interaction.options.getChannel('channel');
+    const token = uuidv4();
+    tokenToChannel.set(token, channel.id);
+    const baseUrl = process.env.BASE_URL || 'https://your-app.onrender.com'; // Set BASE_URL in .env or Render env vars
+    const url = `${baseUrl}/?token=${token}`;
+    await interaction.reply({ content: `Shareable URL created: ${url}\nThis URL is tied to channel <#${channel.id}>. Anyone with this URL can send emojis to that channel.`, ephemeral: true });
+  }
 });
 
 client.login(process.env.TOKEN).catch(error => {
@@ -46,7 +73,14 @@ app.get("/api/emojis", async (_, res) => {
 app.post("/api/send", async (req, res) => {
   try {
     await readyPromise; // Wait for bot to be ready
-    const { channelId, emoji } = req.body;
+    const { channelId, emoji, token } = req.body;
+    if (!token || !tokenToChannel.has(token)) {
+      return res.json({ ok: false, error: "Invalid or missing token" });
+    }
+    const storedChannelId = tokenToChannel.get(token);
+    if (channelId !== storedChannelId) {
+      return res.json({ ok: false, error: "Channel mismatch for this token" });
+    }
     const ch = await client.channels.fetch(channelId);
     await ch.send(emoji);
     res.json({ ok: true });
@@ -57,7 +91,12 @@ app.post("/api/send", async (req, res) => {
 });
 
 /* UI Dashboard */
-app.get("/", (_, res) => {
+app.get("/", (req, res) => {
+  const token = req.query.token;
+  if (!token || !tokenToChannel.has(token)) {
+    return res.send("<h1>Invalid or missing token. Use /create_url in Discord to generate a valid URL.</h1>");
+  }
+  const channelId = tokenToChannel.get(token);
 res.send(`
 <!DOCTYPE html>
 <html>
@@ -248,7 +287,7 @@ header{
 <body>
 <div class="bg">
 <header>
-  <!-- Input container -->
+  <!-- Input container (pre-filled and read-only) -->
   <div class="input__container">
     <div class="shadow__input"></div>
     <button class="input__button__shadow">
@@ -257,54 +296,56 @@ header{
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path>
       </svg>
     </button>
-    <input type="text" class="input__search" placeholder="Enter channel ID" id="channel">
+    <input type="text" class="input__search" id="channel" value="${channelId}" readonly>
   </div>
 </header>
 <div id="grid"></div>
 </div>
 <script>
-const grid=document.getElementById("grid");
-const channel=document.getElementById("channel");
+const grid = document.getElementById("grid");
+const channel = document.getElementById("channel");
+const token = new URLSearchParams(window.location.search).get('token');
 // Emoji grid
-fetch("/api/emojis").then(r=>r.json()).then(list=>{
+fetch("/api/emojis").then(r => r.json()).then(list => {
   if (list.error) {
     alert(list.error);
     return;
   }
-  list.forEach(e=>{
-    const card=document.createElement("div");
-    card.className="card";
-    const img=document.createElement("img");
-    img.src=e.url;
-    img.className="emoji";
-    const btn=document.createElement("button");
-    btn.className="button";
-    btn.textContent="SEND";
-    const tick=document.createElement("div");
-    tick.className="tick";
-    tick.innerHTML='<div class="checkmark"></div>';
-    btn.onclick=()=>{
-      fetch("/api/send",{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({
-          channelId:channel.value,
-          emoji:\`<\${e.animated?"a":""}:\${e.name}:\${e.id}>\`
+  list.forEach(e => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const img = document.createElement("img");
+    img.src = e.url;
+    img.className = "emoji";
+    const btn = document.createElement("button");
+    btn.className = "button";
+    btn.textContent = "SEND";
+    const tick = document.createElement("div");
+    tick.className = "tick";
+    tick.innerHTML = '<div class="checkmark"></div>';
+    btn.onclick = () => {
+      fetch("/api/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channelId: channel.value,
+          emoji: `<${e.animated ? "a" : ""}:${e.name}:${e.id}>`,
+          token: token
         })
-      }).then(r=>r.json()).then(data=>{
+      }).then(r => r.json()).then(data => {
         if (!data.ok) {
           alert(data.error || "Failed to send emoji");
           return;
         }
-        btn.style.display="none";
+        btn.style.display = "none";
         tick.classList.add("show");
-        setTimeout(()=>{
+        setTimeout(() => {
           tick.classList.remove("show");
-          btn.style.display="inline-block";
-        },1300);
+          btn.style.display = "inline-block";
+        }, 1300);
       });
     };
-    card.append(img,btn,tick);
+    card.append(img, btn, tick);
     grid.appendChild(card);
   });
 }).catch(error => {
