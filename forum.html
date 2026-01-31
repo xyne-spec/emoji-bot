@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Promo Forum</title>
+<style>
+/* From Uiverse.io by R1SH4BH81 - Your Original Dark Styles */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  --color: rgba(114, 114, 114, 0.3);
+  background-color: #191a1a;
+  background-image: linear-gradient(0deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%,transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%,transparent),
+                    linear-gradient(90deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%,transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%,transparent);
+  background-size: 55px 55px;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: auto;
+  gap: 0px;
+}
+
+hr {
+  height: 1px;
+  background-color: #2e2e2e;
+  border: none;
+}
+
+.card {
+  width: 400px;
+  background: #1c1c1c;
+  box-shadow: 0px 187px 75px rgba(0, 0, 0, 0.01), 0px 105px 63px rgba(0, 0, 0, 0.05), 0px 47px 47px rgba(0, 0, 0, 0.09), 0px 12px 26px rgba(0, 0, 0, 0.1), 0px 0px 0px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  width: 100%;
+  height: 40px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  border-bottom: 1px solid #2e2e2e;
+  font-weight: 700;
+  font-size: 11px;
+  color: #ffffff;
+}
+
+/* Cart */
+.cart {
+  border-radius: 19px 19px 0px 0px;
+}
+
+.cart .steps {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.cart .steps .step {
+  display: grid;
+  gap: 10px;
+}
+
+.cart .steps .step span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.cart .steps .step p {
+  font-size: 11px;
+  font-weight: 600;
+  color: #bbbbbb;
+}
+
+/* FIXED Promo Input (no more overflow) */
+.promo form, .credits form, .redeem form {
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  gap: 10px;
+  padding: 0px;
+}
+
+.input_field {
+  width: 100% !important;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 5px;
+  outline: none;
+  border: 1px solid #2e2e2e;
+  background-color: #333333;
+  color: #ffffff;
+  transition: all 0.3s cubic-bezier(0.15, 0.83, 0.66, 1);
+  box-sizing: border-box;
+}
+
+.input_field:focus {
+  border: 1px solid transparent;
+  box-shadow: 0px 0px 0px 2px #555555;
+  background-color: #333333;
+}
+
+.promo form button, .credits form button, .redeem form button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 36px;
+  background: #555555;
+  border-radius: 5px;
+  border: 0;
+  font-weight: 600;
+  font-size: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.promo form button:hover, .credits form button:hover, .redeem form button:hover {
+  background: #777777;
+}
+
+/* Payments */
+.payments .details {
+  display: grid;
+  grid-template-columns: 10fr 1fr;
+  padding: 0px;
+  gap: 5px;
+}
+
+.payments .details span:nth-child(odd) {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.payments .details span:nth-child(even) {
+  font-size: 13px;
+  font-weight: 600;
+  color: #bbbbbb;
+}
+
+/* Checkout */
+.checkout .footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 10px 10px 20px;
+  background-color: #2e2e2e;
+}
+
+.price {
+  font-size: 22px;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.checkout .checkout-btn {
+  width: 150px;
+  height: 36px;
+  background: #555555;
+  border-radius: 7px;
+  border: 1px solid #2e2e2e;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.checkout .checkout-btn:hover {
+  background: #777777;
+}
+
+/* GLOBAL FIX: Prevent any overflow */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Dark Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #1c1c1c;
+  width: 400px;
+  border-radius: 12px;
+  padding: 20px;
+  color: #ffffff;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  max-width: 95vw;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #2e2e2e;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #888;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #bbbbbb;
+}
+
+.form-input, select.form-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  background: #333;
+  border: 1px solid #2e2e2e;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-row .form-group {
+  margin-bottom: 0;
+}
+
+.save-btn {
+  width: 100%;
+  height: 42px;
+  background: #555555;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #777777;
+}
+
+.add-new {
+  display: inline-block;
+  padding: 8px 0;
+  margin: 12px 0;
+  color: #777;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#newCardForm {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #2e2e2e;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card cart">
+    <label class="title">CHECKOUT</label>
+    <div class="steps">
+      <div class="step">
+
+        <!-- Shipping -->
+        <div>
+          <span>SHIPPING <button class="edit-btn" style="float:right; background:none; border:none; color:#777; font-size:11px; cursor:pointer;" id="editShippingBtn">Edit</button></span>
+          <p id="fullShipping">221B Baker Street, W1U 8ED<br>London, England, United Kingdom</p>
+        </div>
+        <hr />
+
+        <!-- Payment Method -->
+        <div>
+          <span>PAYMENT METHOD <button class="edit-btn" style="float:right; background:none; border:none; color:#777; font-size:11px; cursor:pointer;" id="editPaymentBtn">Edit</button></span>
+          <p id="paymentTypeDisplay">Visa</p>
+          <p id="cardLastDisplay">**** **** **** 4243</p>
+        </div>
+        <hr />
+
+        <!-- Discord User ID -->
+        <div>
+          <span>DISCORD USER ID (required for message payment)</span>
+          <input class="input_field" id="userId" placeholder="123456789012345678" type="text" style="width:100%; margin-top:8px;">
+        </div>
+        <hr />
+
+        <!-- Promo -->
+        <div class="promo">
+          <span>HAVE A PROMO CODE?</span>
+          <form id="promoForm">
+            <input class="input_field" id="promoInput" placeholder="Enter code" type="text">
+            <button type="submit">Apply</button>
+          </form>
+        </div>
+
+        <!-- Credits -->
+        <div class="credits">
+          <span>BUY CREDITS (pay-as-you-go animated sends)</span>
+          <form id="creditForm">
+            <input class="input_field" id="creditAmount" placeholder="Amount of credits" type="number" min="1">
+            <button type="submit">Buy with messages</button>
+          </form>
+        </div>
+
+        <!-- Redeem -->
+        <div class="redeem">
+          <span>REDEEM CODE (from DM)</span>
+          <form id="redeemForm">
+            <input class="input_field" id="redeemInput" placeholder="Enter code" type="text">
+            <button type="submit">Redeem</button>
+          </form>
+        </div>
+        <hr />
+
+        <!-- Payment Breakdown -->
+        <div class="payments">
+          <span>PREMIUM SUBSCRIPTION</span>
+          <div class="details">
+            <span>Price after discount:</span><span id="subtotal">$499.00</span>
+            <span>Shipping:</span><span>$0.00</span>
+            <span>Tax:</span><span>$0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card checkout">
+    <div class="footer">
+      <label class="price" id="totalPrice">$499.00</label>
+      <button class="checkout-btn" id="paySubBtn">Pay with Messages</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shipping Modal -->
+<div class="modal" id="shippingModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Edit Shipping</div>
+      <button class="close" onclick="closeShippingModal()">×</button>
+    </div>
+
+    <div class="form-group">
+      <label>Street Address</label>
+      <input type="text" class="form-input" id="editStreet" value="221B Baker Street">
+    </div>
+    <div class="form-group">
+      <label>City</label>
+      <input type="text" class="form-input" id="editCity" value="London">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Country</label>
+        <select class="form-input" id="countrySelect" onchange="populateStates()">
+          <option value="United Kingdom">United Kingdom</option>
+          <option value="United States">United States</option>
+          <option value="India">India</option>
+          <option value="Canada">Canada</option>
+          <option value="Australia">Australia</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>State / Province</label>
+        <select class="form-input" id="stateSelect"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Postal Code</label>
+      <input type="text" class="form-input" id="editPostal" value="W1U 8ED">
+    </div>
+
+    <button class="save-btn" onclick="saveShipping()">Save Changes</button>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal" id="paymentModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Edit Payment Method</div>
+      <button class="close" onclick="closePaymentModal()">×</button>
+    </div>
+
+    <div class="form-group">
+      <label>Payment Type</label>
+      <select class="form-input" id="paymentTypeSelect">
+        <option value="visa">Visa</option>
+        <option value="mastercard">Mastercard</option>
+        <option value="amex">American Express</option>
+        <option value="discover">Discover</option>
+        <option value="paypal">PayPal</option>
+        <option value="applepay">Apple Pay</option>
+        <option value="googlepay">Google Pay</option>
+        <option value="bank">Bank Transfer</option>
+      </select>
+    </div>
+
+    <div onclick="showAddCardForm()" class="add-new">+ Add new card</div>
+
+    <div id="newCardForm" style="display:none;">
+      <div class="form-group">
+        <label>Card Number</label>
+        <input type="text" class="form-input" id="newCardNumber" placeholder="4242 4242 4242 4242" maxlength="19">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Expiry (MM/YY)</label>
+          <input type="text" class="form-input" id="newExpiry" placeholder="12/28" maxlength="5">
+        </div>
+        <div class="form-group">
+          <label>CVV</label>
+          <input type="text" class="form-input" id="newCvv" placeholder="123" maxlength="4">
+        </div>
+      </div>
+      <button class="save-btn" onclick="addNewCard()">Add Card</button>
+    </div>
+
+    <button class="save-btn" onclick="savePayment()">Save Payment Method</button>
+  </div>
+</div>
+
+<script>
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : undefined;
+}
+
+let discountPercent = 0;
+
+function updatePrice() {
+  const base = 499;
+  const final = base * (1 - discountPercent / 100);
+  const formatted = final.toFixed(2);
+  document.getElementById('subtotal').textContent = '$' + formatted;
+  document.getElementById('totalPrice').textContent = '$' + formatted;
+}
+
+// Promo
+document.getElementById('promoForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const code = document.getElementById('promoInput').value.trim();
+  if (!code) return;
+  
+  fetch('/api/apply_promo', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({code})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.free) {
+      document.cookie = "subscribed=true; max-age=2592000; path=/; Secure; SameSite=Strict";
+      alert("✅ FREE PREMIUM UNLOCKED!");
+      window.opener?.location.reload();
+    } else if (data.discount !== undefined) {
+      discountPercent = data.discount;
+      updatePrice();
+      alert(`✅ ${discountPercent}% discount applied!`);
+    } else {
+      alert("❌ Invalid or already used code.");
+    }
+  });
+  document.getElementById('promoInput').value = '';
+});
+
+// Credits purchase
+document.getElementById('creditForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const amt = parseInt(document.getElementById('creditAmount').value);
+  if (!amt || amt < 1) return alert("Enter valid amount");
+  
+  const userId = document.getElementById('userId').value.trim();
+  if (!userId || userId.length < 17) return alert("Enter your Discord User ID");
+
+  fetch('/api/start_payment', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({userId, requiredMsgs: amt, type: 'credits', amount: amt})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.ok) alert(`✅ Send ${amt} messages anywhere. Bot will DM you the code when done!`);
+  });
+});
+
+// Redeem
+document.getElementById('redeemForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const code = document.getElementById('redeemInput').value.trim();
+  fetch('/api/redeem', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({code})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.ok) {
+      alert("✅ Code redeemed successfully!");
+      window.opener?.location.reload();
+    } else {
+      alert("❌ Invalid code");
+    }
+  });
+});
+
+// Pay subscription with messages
+document.getElementById('paySubBtn').addEventListener('click', () => {
+  const base = 499;
+  const final = base * (1 - discountPercent / 100);
+  const msgs = Math.ceil(final / 10);
+  
+  const userId = document.getElementById('userId').value.trim();
+  if (!userId || userId.length < 17) return alert("Enter your Discord User ID first");
+
+  if (msgs === 0) {
+    document.cookie = "subscribed=true; max-age=2592000; path=/; Secure; SameSite=Strict";
+    alert("✅ 100% discount → FREE PREMIUM UNLOCKED!");
+    window.opener?.location.reload();
+    return;
+  }
+
+  fetch('/api/start_payment', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({userId, requiredMsgs: msgs, type: 'sub'})
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.ok) alert(`✅ Send ${msgs} messages to pay $${final.toFixed(2)} and unlock premium!`);
+  });
+});
+
+// Shipping modal fixes
+function openShippingModal() {
+  document.getElementById('shippingModal').style.display = 'flex';
+  populateStates();
+}
+function closeShippingModal() {
+  document.getElementById('shippingModal').style.display = 'none';
+}
+function saveShipping() {
+  const street = document.getElementById('editStreet').value;
+  const postal = document.getElementById('editPostal').value;
+  const city = document.getElementById('editCity').value;
+  const state = document.getElementById('stateSelect').value || '';
+  const country = document.getElementById('countrySelect').value;
+
+  document.getElementById('fullShipping').innerHTML = 
+    `${street}, ${postal}<br>${city}, ${state} ${country}`.replace(/,\s*$/, '').replace(/,\s*,/g, ',');
+  
+  closeShippingModal();
+}
+document.getElementById('editShippingBtn').addEventListener('click', openShippingModal);
+
+function populateStates() {
+  const country = document.getElementById('countrySelect').value;
+  const stateSelect = document.getElementById('stateSelect');
+  stateSelect.innerHTML = '<option>Select state</option>';
+
+  const states = {
+    "United Kingdom": ["England", "Scotland", "Wales", "Northern Ireland"],
+    "United States": ["California", "New York", "Texas", "Florida", "Illinois", "Pennsylvania"],
+    "India": ["Maharashtra", "Delhi", "Karnataka", "Tamil Nadu"],
+    "Canada": ["Ontario", "Quebec", "British Columbia"],
+    "Australia": ["New South Wales", "Victoria", "Queensland"]
+  };
+
+  if (states[country]) {
+    states[country].forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = s;
+      stateSelect.appendChild(opt);
+    });
+    if (country === "United Kingdom") stateSelect.value = "England";
+  }
+}
+
+// Close modals on outside click
+window.addEventListener('click', e => {
+  if (e.target.classList.contains('modal')) {
+    e.target.style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>
