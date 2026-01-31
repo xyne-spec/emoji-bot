@@ -2,37 +2,50 @@ require("dotenv").config();
 const { Client, GatewayIntentBits } = require("discord.js");
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const path = require("path");
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 });
-client.once("ready", () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
+
+let readyPromise = new Promise((resolve) => {
+  client.once("ready", () => {
+    console.log(`✅ Logged in as ${client.user.tag}`);
+    resolve();
+  });
 });
+
 /* API */
 app.get("/api/emojis", async (_, res) => {
-  const emojis = await client.application.emojis.fetch();
-  res.json([...emojis.values()].map(e => ({
-    id: e.id,
-    name: e.name,
-    animated: e.animated,
-    url: e.url
-  })));
+  try {
+    await readyPromise; // Wait for bot to be ready
+    const emojis = await client.application.emojis.fetch();
+    res.json([...emojis.values()].map(e => ({
+      id: e.id,
+      name: e.name,
+      animated: e.animated,
+      url: e.url
+    })));
+  } catch (error) {
+    console.error("Error fetching emojis:", error);
+    res.status(500).json({ error: "Failed to fetch emojis. Bot may not be ready or there was an internal error." });
+  }
 });
+
 app.post("/api/send", async (req, res) => {
   try {
+    await readyPromise; // Wait for bot to be ready
     const { channelId, emoji } = req.body;
     const ch = await client.channels.fetch(channelId);
     await ch.send(emoji);
     res.json({ ok: true });
   } catch (error) {
-    console.error(error);
-    res.json({ ok: false });
+    console.error("Error sending emoji:", error);
+    res.json({ ok: false, error: error.message });
   }
 });
+
 /* UI Dashboard */
 app.get("/", (_, res) => {
 res.send(`
@@ -244,6 +257,10 @@ const grid=document.getElementById("grid");
 const channel=document.getElementById("channel");
 // Emoji grid
 fetch("/api/emojis").then(r=>r.json()).then(list=>{
+  if (list.error) {
+    alert(list.error);
+    return;
+  }
   list.forEach(e=>{
     const card=document.createElement("div");
     card.className="card";
@@ -266,7 +283,7 @@ fetch("/api/emojis").then(r=>r.json()).then(list=>{
         })
       }).then(r=>r.json()).then(data=>{
         if (!data.ok) {
-          alert("Failed to send emoji");
+          alert(data.error || "Failed to send emoji");
           return;
         }
         btn.style.display="none";
@@ -280,11 +297,14 @@ fetch("/api/emojis").then(r=>r.json()).then(list=>{
     card.append(img,btn,tick);
     grid.appendChild(card);
   });
+}).catch(error => {
+  alert("Error loading emojis: " + error.message);
 });
 </script>
 </body>
 </html>
 `);
 });
+
 client.login(process.env.TOKEN);
-app.listen(process.env.PORT,()=>console.log("🌐 http://localhost:"+process.env.PORT));
+app.listen(process.env.PORT || 3000, () => console.log(`🌐 Server listening on port ${process.env.PORT || 3000}`));
